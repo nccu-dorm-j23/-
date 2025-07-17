@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>📦 包裹查詢系統</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #f0f4f8;
+    }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin: 0.3rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background-color: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    th {
+      background-color: #e0e7ff;
+    }
+    .center {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="center">📦 包裹查詢系統</h1>
+
+  <div class="center">
+    <input type="text" id="query" placeholder="請輸入姓名或學號">
+    <button onclick="search()">查詢</button>
+  </div>
+
+  <div id="result" class="center"></div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwRC1hzxVaJxiiQoTuVjJJDJNyBcDf61SB4e9HYAFxdiRE8gyTrW9qxL0Ys3SlbGIJw/exec";
+
+    async function search() {
+      const keyword = document.getElementById("query").value.trim();
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "查詢中...";
+
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+
+        const filtered = data.filter(row =>
+          (row["收件人姓名"] || "").includes(keyword) ||
+          (row["學號"] || "").includes(keyword)
+        );
+
+        if (filtered.length === 0) {
+          resultDiv.innerHTML = "❌ 查無資料";
+          return;
+        }
+
+        let html = `<table>
+          <thead>
+            <tr>
+              <th>收件日期</th>
+              <th>件數</th>
+              <th>物品放置位置</th>
+              <th>寢室號碼</th>
+              <th>收件人姓名</th>
+              <th>學號</th>
+              <th>簽收日期</th>
+              <th>簽收</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+        filtered.forEach(row => {
+          html += `<tr>
+            <td>${row["收件日期"] || ""}</td>
+            <td>${row["件數"] || ""}</td>
+            <td>${row["物品放置位置"] || ""}</td>
+            <td>${row["寢室號碼"] || ""}</td>
+            <td>${row["收件人姓名"] || ""}</td>
+            <td>${row["學號"] || ""}</td>
+            <td>${row["簽收日期"] || ""}</td>
+            <td>${row["簽收"] || ""}</td>
+          </tr>`;
+        });
+
+        html += "</tbody></table>";
+        resultDiv.innerHTML = html;
+
+      } catch (err) {
+        console.error("查詢錯誤", err);
+        resultDiv.innerHTML = "❌ 資料載入失敗，請稍後再試。";
+      }
+    }
+  </script>
+
+</body>
+</html>
